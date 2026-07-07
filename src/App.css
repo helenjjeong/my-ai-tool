@@ -1,0 +1,128 @@
+.page {
+  width: 480px;
+  max-width: 100%;
+  margin: 0 auto;
+  padding: 48px 20px 80px;
+  box-sizing: border-box;
+}
+
+.page-header {
+  text-align: center;
+  margin-bottom: 32px;
+}
+
+.page-header h1 {
+  font-size: 32px;
+  margin: 0 0 12px;
+}
+
+.page-header p {
+  color: var(--text);
+}
+
+.calculator {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.loan-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 24px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--code-bg);
+}
+
+.form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  text-align: left;
+}
+
+.form-field label {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-h);
+}
+
+.form-field input {
+  font: inherit;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg);
+  color: var(--text-h);
+}
+
+.form-field input:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+.field-error {
+  margin: 0;
+  font-size: 13px;
+  color: #e5484d;
+}
+
+.submit-button,
+.more-products-button {
+  font: inherit;
+  font-weight: 600;
+  padding: 12px 16px;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  cursor: pointer;
+}
+
+.submit-button {
+  background: var(--accent);
+  color: white;
+}
+
+.more-products-button {
+  background: var(--accent-bg);
+  color: var(--accent);
+  border-color: var(--accent-border);
+  width: 100%;
+}
+
+.result-card {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 24px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  text-align: left;
+}
+
+.result-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+}
+
+.result-label {
+  color: var(--text);
+  font-size: 14px;
+}
+
+.result-value {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text-h);
+}
+
+.disclaimer {
+  font-size: 12px;
+  line-height: 160%;
+  color: var(--text);
+  padding-top: 8px;
+  border-top: 1px solid var(--border);
+}
