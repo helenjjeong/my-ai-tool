@@ -148,6 +148,53 @@
   color: var(--accent);
 }
 
+.game-banner {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-top: 8px;
+  padding: 16px 18px;
+  border-radius: 12px;
+  border: 1px solid var(--accent-border);
+  background: linear-gradient(135deg, var(--accent-bg), transparent);
+  text-decoration: none;
+  color: inherit;
+  transition: transform 120ms ease, box-shadow 120ms ease;
+}
+
+.game-banner:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow);
+}
+
+.game-banner-emoji {
+  font-size: 28px;
+  line-height: 1;
+}
+
+.game-banner-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  text-align: left;
+  flex: 1;
+}
+
+.game-banner-text strong {
+  color: var(--text-h);
+  font-size: 15px;
+}
+
+.game-banner-text span {
+  font-size: 13px;
+  color: var(--text);
+}
+
+.game-banner-arrow {
+  font-size: 18px;
+  color: var(--accent);
+}
+
 .nav-bar {
   border-bottom: 1px solid var(--border);
 }

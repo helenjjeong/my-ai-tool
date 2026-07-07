@@ -51,6 +51,15 @@ export function HomePage() {
           </li>
         </ul>
       </section>
+
+      <a href="/game/" target="_blank" rel="noopener noreferrer" className="game-banner">
+        <span className="game-banner-emoji">🪙</span>
+        <span className="game-banner-text">
+          <strong>심심할 때 한 판, 코인 2048</strong>
+          <span>같은 금액의 동전을 합쳐서 100만원을 만들어보세요</span>
+        </span>
+        <span className="game-banner-arrow">→</span>
+      </a>
     </main>
   )
 }

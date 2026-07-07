@@ -1,0 +1,591 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+<title>코인 2048</title>
+<style>
+  :root {
+    --gap: 10px;
+    --board-max: 440px;
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: #2b1d0e;
+    color: #f5eada;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Malgun Gothic', sans-serif;
+    overscroll-behavior: none;
+  }
+
+  .wrap {
+    max-width: 520px;
+    margin: 0 auto;
+    padding: 20px 16px 40px;
+    text-align: center;
+  }
+
+  h1 {
+    font-size: clamp(24px, 6vw, 32px);
+    margin: 4px 0 2px;
+  }
+
+  .subtitle {
+    margin: 0 0 16px;
+    font-size: 13px;
+    color: #c9b89a;
+  }
+
+  .score-row {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 14px;
+  }
+
+  .score-box {
+    background: #3d2a15;
+    border-radius: 8px;
+    padding: 8px 18px;
+    min-width: 90px;
+  }
+
+  .score-box .label {
+    font-size: 11px;
+    color: #c9b89a;
+    letter-spacing: 0.04em;
+  }
+
+  .score-box .value {
+    font-size: 20px;
+    font-weight: 700;
+    color: #ffd76a;
+  }
+
+  .new-game-btn {
+    font: inherit;
+    font-weight: 700;
+    background: #e08e00;
+    color: #2b1d0e;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 18px;
+    cursor: pointer;
+  }
+
+  .new-game-btn:hover {
+    background: #f0a51a;
+  }
+
+  .instructions {
+    font-size: 13px;
+    color: #c9b89a;
+    margin: 14px 0;
+    line-height: 150%;
+  }
+
+  .board {
+    position: relative;
+    width: min(92vw, var(--board-max));
+    aspect-ratio: 1 / 1;
+    margin: 0 auto;
+    background: #4a3220;
+    border-radius: 14px;
+    padding: var(--gap);
+    touch-action: none;
+    user-select: none;
+  }
+
+  .cell-grid {
+    position: absolute;
+    inset: var(--gap);
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    grid-template-rows: repeat(4, 1fr);
+    gap: var(--gap);
+  }
+
+  .cell-bg {
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 8px;
+  }
+
+  .tiles-layer {
+    position: absolute;
+    inset: var(--gap);
+  }
+
+  .tile {
+    position: absolute;
+    top: 0;
+    left: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    font-weight: 800;
+    line-height: 1.1;
+    text-align: center;
+    padding: 4px;
+    transition: transform 110ms ease-in-out;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.25);
+  }
+
+  .tile.tile-pop {
+    animation: pop 140ms ease-in-out;
+  }
+
+  .tile.tile-merge-pop {
+    animation: mergePop 160ms ease-in-out;
+  }
+
+  @keyframes pop {
+    0% { transform: scale(0.3); opacity: 0.4; }
+    80% { transform: scale(1.08); opacity: 1; }
+    100% { transform: scale(1); }
+  }
+
+  @keyframes mergePop {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.15); }
+    100% { transform: scale(1); }
+  }
+
+  .footer-links {
+    margin-top: 20px;
+    font-size: 13px;
+  }
+
+  .footer-links a {
+    color: #ffd76a;
+    text-decoration: none;
+  }
+
+  .footer-links a:hover {
+    text-decoration: underline;
+  }
+
+  .overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(20, 12, 4, 0.82);
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 14px;
+    text-align: center;
+    padding: 20px;
+  }
+
+  .overlay.hidden {
+    display: none;
+  }
+
+  .overlay p {
+    font-size: 18px;
+    font-weight: 700;
+    margin: 0;
+    color: #ffd76a;
+  }
+
+  .overlay-buttons {
+    display: flex;
+    gap: 10px;
+  }
+
+  .overlay-buttons button {
+    font: inherit;
+    font-weight: 700;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 16px;
+    cursor: pointer;
+  }
+
+  .overlay-buttons .continue-btn {
+    background: #3d2a15;
+    color: #ffd76a;
+  }
+
+  .overlay-buttons .restart-btn {
+    background: #e08e00;
+    color: #2b1d0e;
+  }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>🪙 코인 2048</h1>
+    <p class="subtitle">같은 금액의 동전을 합쳐서 100만원 동전을 만들어보세요!</p>
+
+    <div class="score-row">
+      <div class="score-box">
+        <div class="label">점수</div>
+        <div class="value" id="score">0</div>
+      </div>
+      <div class="score-box">
+        <div class="label">최고 기록</div>
+        <div class="value" id="best">0</div>
+      </div>
+      <button class="new-game-btn" id="newGameBtn" type="button">새 게임</button>
+    </div>
+
+    <p class="instructions">방향키(↑↓←→)를 누르거나, 모바일에서는 화면을 스와이프하세요.</p>
+
+    <div class="board" id="board">
+      <div class="cell-grid" id="cellGrid"></div>
+      <div class="tiles-layer" id="tilesLayer"></div>
+      <div class="overlay hidden" id="overlay">
+        <p id="overlayMessage"></p>
+        <div class="overlay-buttons">
+          <button class="continue-btn hidden" id="continueBtn" type="button">계속하기</button>
+          <button class="restart-btn" id="restartBtn" type="button">새 게임</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer-links">
+      <a href="/">← 전세자금대출 계산기로 돌아가기</a>
+    </div>
+  </div>
+
+<script>
+(function () {
+  'use strict';
+
+  var SEQUENCE = [100, 500, 1000, 5000, 10000, 50000, 100000, 500000, 1000000];
+  var BEST_KEY = 'coin2048_best';
+  var SIZE = 4;
+
+  var COLORS = {
+    100:     { bg: '#fdf1d9', fg: '#5c3d00' },
+    500:     { bg: '#fbe3ac', fg: '#5c3d00' },
+    1000:    { bg: '#f8d27e', fg: '#4a3000' },
+    5000:    { bg: '#f4bd52', fg: '#3d2600' },
+    10000:   { bg: '#eea52c', fg: '#2e1c00' },
+    50000:   { bg: '#e08e00', fg: '#ffffff' },
+    100000:  { bg: '#c17400', fg: '#ffffff' },
+    500000:  { bg: '#8f5400', fg: '#ffffff' },
+    1000000: { bg: '#5c3300', fg: '#ffd700' }
+  };
+
+  var boardEl = document.getElementById('board');
+  var cellGridEl = document.getElementById('cellGrid');
+  var tilesLayerEl = document.getElementById('tilesLayer');
+  var scoreEl = document.getElementById('score');
+  var bestEl = document.getElementById('best');
+  var overlayEl = document.getElementById('overlay');
+  var overlayMessageEl = document.getElementById('overlayMessage');
+  var continueBtn = document.getElementById('continueBtn');
+  var restartBtn = document.getElementById('restartBtn');
+  var newGameBtn = document.getElementById('newGameBtn');
+
+  var grid, tiles, tileElements, score, best, won, wonShown, over, nextId;
+
+  function nextValue(v) {
+    var i = SEQUENCE.indexOf(v);
+    return SEQUENCE[i + 1];
+  }
+
+  function formatValue(v) {
+    return v.toLocaleString('ko-KR') + '원';
+  }
+
+  function fontSizeFor(cellSize, v) {
+    var len = String(v).length;
+    if (len <= 3) return cellSize * 0.34;
+    if (len <= 5) return cellSize * 0.30;
+    if (len <= 6) return cellSize * 0.26;
+    return cellSize * 0.20;
+  }
+
+  function buildCellBackground() {
+    cellGridEl.innerHTML = '';
+    for (var i = 0; i < SIZE * SIZE; i++) {
+      var cell = document.createElement('div');
+      cell.className = 'cell-bg';
+      cellGridEl.appendChild(cell);
+    }
+  }
+
+  function withinBounds(r, c) {
+    return r >= 0 && r < SIZE && c >= 0 && c < SIZE;
+  }
+
+  function emptyCells() {
+    var cells = [];
+    for (var r = 0; r < SIZE; r++) {
+      for (var c = 0; c < SIZE; c++) {
+        if (!grid[r][c]) cells.push([r, c]);
+      }
+    }
+    return cells;
+  }
+
+  function addRandomTile() {
+    var empty = emptyCells();
+    if (empty.length === 0) return;
+    var pick = empty[Math.floor(Math.random() * empty.length)];
+    var r = pick[0], c = pick[1];
+    var value = Math.random() < 0.9 ? 100 : 500;
+    var tile = { id: nextId++, row: r, col: c, value: value, isNew: true, merged: false };
+    grid[r][c] = tile;
+    tiles.push(tile);
+  }
+
+  function init() {
+    grid = [];
+    for (var r = 0; r < SIZE; r++) grid.push(new Array(SIZE).fill(null));
+    tiles = [];
+    tileElements = new Map();
+    score = 0;
+    won = false;
+    wonShown = false;
+    over = false;
+    nextId = 1;
+    tilesLayerEl.innerHTML = '';
+    hideOverlay();
+    addRandomTile();
+    addRandomTile();
+    updateScoreDisplay();
+    render();
+  }
+
+  function updateScoreDisplay() {
+    scoreEl.textContent = score.toLocaleString('ko-KR');
+    bestEl.textContent = best.toLocaleString('ko-KR');
+  }
+
+  function getCellSize() {
+    var rect = tilesLayerEl.getBoundingClientRect();
+    var gap = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--gap')) || 10;
+    return { size: (rect.width - gap * (SIZE - 1)) / SIZE, gap: gap };
+  }
+
+  function render() {
+    var metrics = getCellSize();
+    var cellSize = metrics.size;
+    var gap = metrics.gap;
+
+    var currentIds = {};
+    tiles.forEach(function (t) { currentIds[t.id] = true; });
+
+    tileElements.forEach(function (el, id) {
+      if (!currentIds[id]) {
+        el.remove();
+        tileElements.delete(id);
+      }
+    });
+
+    tiles.forEach(function (tile) {
+      var el = tileElements.get(tile.id);
+      var isBrandNew = false;
+      if (!el) {
+        el = document.createElement('div');
+        el.className = 'tile';
+        tilesLayerEl.appendChild(el);
+        tileElements.set(tile.id, el);
+        isBrandNew = true;
+      }
+
+      var colors = COLORS[tile.value] || COLORS[1000000];
+      el.style.width = cellSize + 'px';
+      el.style.height = cellSize + 'px';
+      el.style.background = colors.bg;
+      el.style.color = colors.fg;
+      el.style.fontSize = fontSizeFor(cellSize, tile.value) + 'px';
+      el.textContent = formatValue(tile.value);
+      el.style.transform = 'translate(' + (tile.col * (cellSize + gap)) + 'px, ' + (tile.row * (cellSize + gap)) + 'px)';
+
+      if (isBrandNew) {
+        el.classList.add('tile-pop');
+        el.addEventListener('animationend', function handler() {
+          el.classList.remove('tile-pop');
+          el.removeEventListener('animationend', handler);
+        });
+      }
+
+      if (tile.merged) {
+        el.classList.add('tile-merge-pop');
+        el.addEventListener('animationend', function handler() {
+          el.classList.remove('tile-merge-pop');
+          el.removeEventListener('animationend', handler);
+        });
+      }
+    });
+  }
+
+  var DIR_VECTORS = {
+    left: { dr: 0, dc: -1 },
+    right: { dr: 0, dc: 1 },
+    up: { dr: -1, dc: 0 },
+    down: { dr: 1, dc: 0 }
+  };
+
+  function buildTraversals(vector) {
+    var rows = [0, 1, 2, 3];
+    var cols = [0, 1, 2, 3];
+    if (vector.dr === 1) rows.reverse();
+    if (vector.dc === 1) cols.reverse();
+    return { rows: rows, cols: cols };
+  }
+
+  function findFarthestPosition(cell, vector) {
+    var previous;
+    var row = cell.row, col = cell.col;
+    do {
+      previous = { row: row, col: col };
+      row += vector.dr;
+      col += vector.dc;
+    } while (withinBounds(row, col) && !grid[row][col]);
+    return { farthest: previous, next: { row: row, col: col } };
+  }
+
+  function isGameOver() {
+    for (var r = 0; r < SIZE; r++) {
+      for (var c = 0; c < SIZE; c++) {
+        if (!grid[r][c]) return false;
+      }
+    }
+    for (var r2 = 0; r2 < SIZE; r2++) {
+      for (var c2 = 0; c2 < SIZE; c2++) {
+        var v = grid[r2][c2].value;
+        if (c2 < SIZE - 1 && grid[r2][c2 + 1].value === v) return false;
+        if (r2 < SIZE - 1 && grid[r2 + 1][c2].value === v) return false;
+      }
+    }
+    return true;
+  }
+
+  function move(direction) {
+    if (over) return;
+    var vector = DIR_VECTORS[direction];
+    var traversals = buildTraversals(vector);
+    var moved = false;
+    var scoreGain = 0;
+
+    tiles.forEach(function (t) {
+      t.merged = false;
+      t.isNew = false;
+      t.mergedInto = false;
+    });
+
+    traversals.rows.forEach(function (row) {
+      traversals.cols.forEach(function (col) {
+        var tile = grid[row][col];
+        if (!tile) return;
+
+        var result = findFarthestPosition({ row: row, col: col }, vector);
+        var farthest = result.farthest;
+        var next = result.next;
+        var nextTile = withinBounds(next.row, next.col) ? grid[next.row][next.col] : null;
+
+        if (nextTile && nextTile.value === tile.value && !nextTile.merged && !tile.mergedInto) {
+          var mergedValue = nextValue(tile.value);
+          grid[row][col] = null;
+          nextTile.value = mergedValue;
+          nextTile.merged = true;
+          tile.mergedInto = true;
+          scoreGain += mergedValue;
+          moved = true;
+          if (mergedValue === 1000000) won = true;
+        } else {
+          grid[row][col] = null;
+          grid[farthest.row][farthest.col] = tile;
+          if (farthest.row !== row || farthest.col !== col) moved = true;
+          tile.row = farthest.row;
+          tile.col = farthest.col;
+        }
+      });
+    });
+
+    if (!moved) return;
+
+    tiles = tiles.filter(function (t) { return !t.mergedInto; });
+
+    score += scoreGain;
+    if (score > best) {
+      best = score;
+      localStorage.setItem(BEST_KEY, String(best));
+    }
+    updateScoreDisplay();
+
+    addRandomTile();
+    render();
+
+    if (won && !wonShown) {
+      wonShown = true;
+      showOverlay('win');
+    } else if (isGameOver()) {
+      over = true;
+      showOverlay('over');
+    }
+  }
+
+  function showOverlay(kind) {
+    overlayEl.classList.remove('hidden');
+    if (kind === 'win') {
+      overlayMessageEl.textContent = '🎉 100만원 동전 완성! 축하합니다!';
+      continueBtn.classList.remove('hidden');
+    } else {
+      overlayMessageEl.textContent = '게임 오버! 더 이상 움직일 수 없어요.';
+      continueBtn.classList.add('hidden');
+    }
+  }
+
+  function hideOverlay() {
+    overlayEl.classList.add('hidden');
+  }
+
+  document.addEventListener('keydown', function (e) {
+    var map = { ArrowLeft: 'left', ArrowRight: 'right', ArrowUp: 'up', ArrowDown: 'down' };
+    if (map[e.key]) {
+      e.preventDefault();
+      move(map[e.key]);
+    }
+  });
+
+  var touchStartX = 0, touchStartY = 0;
+  var SWIPE_THRESHOLD = 24;
+
+  boardEl.addEventListener('touchstart', function (e) {
+    var t = e.changedTouches[0];
+    touchStartX = t.clientX;
+    touchStartY = t.clientY;
+  }, { passive: true });
+
+  boardEl.addEventListener('touchend', function (e) {
+    var t = e.changedTouches[0];
+    var dx = t.clientX - touchStartX;
+    var dy = t.clientY - touchStartY;
+    if (Math.max(Math.abs(dx), Math.abs(dy)) < SWIPE_THRESHOLD) return;
+    if (Math.abs(dx) > Math.abs(dy)) {
+      move(dx > 0 ? 'right' : 'left');
+    } else {
+      move(dy > 0 ? 'down' : 'up');
+    }
+  }, { passive: true });
+
+  window.addEventListener('resize', function () {
+    render();
+  });
+
+  newGameBtn.addEventListener('click', init);
+  restartBtn.addEventListener('click', init);
+  continueBtn.addEventListener('click', hideOverlay);
+
+  best = Number(localStorage.getItem(BEST_KEY)) || 0;
+  buildCellBackground();
+  init();
+})();
+</script>
+</body>
+</html>
